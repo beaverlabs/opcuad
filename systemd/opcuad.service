@@ -8,7 +8,6 @@ ExecStart=/opt/opcuad/releases/current/bin/opcuad
 WorkingDirectory=/opt/opcuad/releases/current
 RestartSec=15
 Restart=always
-User=beambox
 
 [Install]
 WantedBy=multi-user.target
