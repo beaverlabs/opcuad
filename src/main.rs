@@ -46,6 +46,7 @@ fn main() {
     opcua_console_logging::init();
 
     let listener = TcpListener::bind("0.0.0.0:8341").unwrap();
+    println!("Listening on 0.0.0.0:8341");
 
     for stream in listener.incoming() {
         match stream {
@@ -57,7 +58,7 @@ fn main() {
             }
 
             Err(e) => {
-                println!("Error: {}", e);
+                eprintln!("Error: {}", e);
             }
         }
     }
@@ -97,7 +98,7 @@ fn handle_client(mut stream: TcpStream) {
                             }
                         }
                         Err(err) => {
-                            println!("Could not parse Request {}", err);
+                            eprintln!("Could not parse Request {}", err);
                         }
                     }
 
@@ -108,7 +109,7 @@ fn handle_client(mut stream: TcpStream) {
             }
             Err(e) => {
                 stream.shutdown(Shutdown::Both).unwrap();
-                println!("Error while reading from socket: {}", e);
+                eprintln!("Error while reading from socket: {}", e);
                 break;
             }
         }
