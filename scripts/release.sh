@@ -57,7 +57,7 @@ RELEASE_NAME=$APP+$VERSION_METADATA
 export APP_REVISION=$VERSION_METADATA
 
 BUILD_DIR_PATH=_build/$ENV
-PACKAGE_PATH=target/release/$APP.tar.gz
+PACKAGE_PATH=target/release/$RELEASE_NAME.tar.gz
 DEST_PATH=s3://$DEST_BUCKET/releases/$APP/$ENV/$RELEASE_NAME.tar.gz
 
 if [[ $TARGET == "local" ]]; then
