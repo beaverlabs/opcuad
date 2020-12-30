@@ -45,8 +45,17 @@ struct State {
 fn main() {
     opcua_console_logging::init();
 
-    let listener = TcpListener::bind("0.0.0.0:8341").unwrap();
-    println!("Listening on 0.0.0.0:8341");
+    const DEFAULT_BIND_ADDRESS: &str = "127.0.0.1";
+    const PORT: u16 = 8341;
+
+    let bind_address = match std::env::var("BIND_ADDRESS") {
+        Ok(address) => address,
+        Err(_) => DEFAULT_BIND_ADDRESS.to_string(),
+    };
+
+    println!("Listening on {}:{}", bind_address, PORT);
+
+    let listener = TcpListener::bind(format!("{}:{}", bind_address, PORT)).unwrap();
 
     for stream in listener.incoming() {
         match stream {
