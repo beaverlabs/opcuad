@@ -199,9 +199,10 @@ fn connect(host: &str, port: u16, endpoint: &Option<String>) -> Arc<RwLock<Sessi
     let mut client = ClientBuilder::new()
         .application_name("Simple Client")
         .application_uri("urn:SimpleClient")
+        .session_retry_limit(3)
         .trust_server_certs(true)
         .create_sample_keypair(true)
-        .session_retry_limit(3)
+        .single_threaded_executor()
         .client()
         .unwrap();
 
