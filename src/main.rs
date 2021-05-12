@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::io::{Read, Write};
 use std::net::{Shutdown, TcpListener, TcpStream};
+use std::sync::mpsc;
 use std::sync::{Arc, RwLock};
 use std::thread;
 
@@ -40,6 +41,7 @@ struct Server {
 struct State {
     server: Option<Server>,
     session: Option<Arc<RwLock<Session>>>,
+    command_sender: Option<mpsc::Sender<SessionCommand>>,
 }
 
 fn main() {
@@ -77,6 +79,7 @@ fn handle_client(mut stream: TcpStream) {
     let mut state = State {
         session: None,
         server: None,
+        command_sender: None,
     };
     let mut buf = [0 as u8; 512];
     let mut raw_request: Vec<u8> = Vec::with_capacity(512);
@@ -123,6 +126,12 @@ fn handle_client(mut stream: TcpStream) {
             }
         }
     }
+
+    if let Some(sender) = state.command_sender {
+        sender.send(SessionCommand::Stop).unwrap();
+    }
+
+    println!("Client loop finished for {}", stream.peer_addr().unwrap());
 }
 
 fn parse_request(raw_request: Vec<u8>) -> Result<Request, String> {
@@ -148,12 +157,11 @@ fn handle_request(state: State, req: Request) -> (Result<Response, String>, Stat
             None => {
                 let session = connect(&host, port, &endpoint);
                 let shared = session.clone();
-                thread::spawn(move || {
-                    let _ = Session::run(shared);
-                });
+                let command_sender = Session::run_async(shared);
                 (
                     Ok(Response::ConnectOk),
                     State {
+                        command_sender: Some(command_sender),
                         server: Some(Server {
                             host,
                             port,
@@ -179,9 +187,14 @@ fn handle_request(state: State, req: Request) -> (Result<Response, String>, Stat
                     .collect();
                 let my_session = session.clone();
                 let mut the_session = my_session.write().unwrap();
-                let values = the_session.read(&nodes).unwrap();
 
-                (Ok(Response::ReadOk { values }), state)
+                match the_session.read(&nodes) {
+                    Ok(values) => (Ok(Response::ReadOk { values }), state),
+                    Err(err) => (
+                        Err(format!("Unable to read from OPCUA server: {}", err)),
+                        state,
+                    ),
+                }
             }
         },
     }
