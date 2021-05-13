@@ -240,5 +240,8 @@ fn handle_error(mut stream: &TcpStream, message: String) {
 
 fn handle_response(mut stream: &TcpStream, response: Response) {
     let data = serde_json::to_string(&response).unwrap() + "\n";
-    stream.write_all(&data.into_bytes()).unwrap();
+
+    if let Err(e) = stream.write_all(&data.into_bytes()) {
+        eprintln!("Error while writing response to socket: {}", e);
+    }
 }
