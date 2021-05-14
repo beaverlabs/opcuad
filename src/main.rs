@@ -83,6 +83,7 @@ fn handle_client(mut stream: TcpStream) {
     };
     let mut buf = [0 as u8; 512];
     let mut raw_request: Vec<u8> = Vec::with_capacity(512);
+    let peer_address = stream.peer_addr().unwrap();
 
     loop {
         match stream.read(&mut buf) {
@@ -131,7 +132,7 @@ fn handle_client(mut stream: TcpStream) {
         sender.send(SessionCommand::Stop).unwrap();
     }
 
-    println!("Client loop finished for {}", stream.peer_addr().unwrap());
+    println!("Client loop finished for {}", peer_address);
 }
 
 fn parse_request(raw_request: Vec<u8>) -> Result<Request, String> {
